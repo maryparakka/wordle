@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Wordle</title>
+    <style>
+        .container 
+        {
+            display: flex;
+            justify-content: center;
+            gap: 1.5em;
+            padding:50px;
+        }
+
+        .flex-grid-thirds 
+        {
+            align-items: center;
+            display: flex;
+
+            gap: 10px;
+
+            flex-flow: column wrap;
+        }
+
+        .flex-grid-thirds .col 
+        {
+            width: 15px;
+            padding: 10px;
+            border: 1px solid black;
+        }
+
+        .flex-grid-thirds .letters 
+        {
+            display: flex;
+            gap: 10px;
+            padding: 25px;
+            height: 30px;
+        }
+
+        .flex-grid-thirds .checkword 
+        {
+            padding: 10px;
+            border: 1px solid antiquewhite;
+            border-radius: 10px;
+            background-color: wheat;
+            cursor: pointer;
+        }
+
+        .usedwordscontainer 
+        {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding-top: 10px;
+            width: 50%;
+        }
+
+        .usedwordscontainer .letter 
+        {
+            padding: 15px;
+            width: 10px;
+            margin-top: 5px;
+        }
+
+        .buttonscontainer 
+        {
+            display: flex;
+        }
+
+        .green 
+        {
+            background-color: rgb(129, 248, 129);
+        }
+
+        .black 
+        {
+            background-color: rgb(179, 179, 179);
+        }
+
+        .yellow 
+        {
+            background-color: rgb(247, 247, 58);
+        }
+
+        .flex-display 
+        {
+            display: flex;
+            gap: 2px;
+        }
+
+        .hide 
+        {
+            display: none;
+        }
+        .message 
+        {
+            line-height: 15px;
+            height: 20px;
+        }
+        .maincontainer{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div id="main" class="maincontainer">
+            <h2>Wordle</h2>
+        <div id="gamecontainer" class="flex-display">
+        <div id="wordle-container" class="flex-grid-thirds">
+            <div id="currentword"></div>
+            <div id="tries">Number of tries : <span id="numberoftries"></span></div>
+            <div id="message" class="message"></div>
+            <div id="wordle-letters" class="letters">
+
+            </div>
+            <div class="buttonscontainer">
+                <span id="checkwordle" class="checkword">Check Word</span>
+                <span id="playagain" class="checkword hide">Play Again</span>
+            </div>
+        </div>
+        <div class="usedwordscontainer">
+            <div>Used Words</div>
+            <div id="usedwords">
+            </div>
+        </div>
+        </div>
+        </div>
+    </div>
+    <script>
+        class alphabet 
+        {
+            constructor(val = '', isInRightPlace = '', isIncluded = '') {
+                this.isInRightPlace = true;
+                this.isIncluded = true;
+                this.letter = val;
+            }
+        }
+        class word 
+        {
+            constructor() {
+                this.wordContainer = document.getElementById("wordle-letters");
+                this.wordAlphabets = [new alphabet(), new alphabet(), new alphabet(), new alphabet(), new alphabet()];
+                this.isCorrectWord = true;
+            }
+            render() {
+                for (let index = 0; index < this.wordAlphabets.length; index++) {
+                    const wordDiv = document.createElement("input");
+                    wordDiv.setAttribute("id", index);
+                    wordDiv.setAttribute("type", "text");
+                    wordDiv.setAttribute("maxlength", "1");
+                    wordDiv.setAttribute("onkeypress", "return (event.charCode > 64 && event.charCode < 91) || (event.charCode > 96 && event.charCode < 123)");
+                    wordDiv.classList.add("col");
+                    wordDiv.innerText = index;
+                    this.wordContainer.append(wordDiv);
+                }
+            }
+        }
+
+        class wordle 
+        {
+            constructor() {
+                this.init();
+                this.initUserWord();
+            }
+            init() 
+            {
+                this.currentWord = '';
+                this.numberOfTries = 0;
+                this.guessedWords = [];
+                this.userWord = '';
+            }
+
+            initUserWord() 
+            {
+                this.userWord = new word();
+            }
+
+            async getCurrentWord() 
+            {
+                const options = {
+                    method: 'GET',
+                    headers: {
+                        'X-RapidAPI-Host': 'wordle-creator-tools.p.rapidapi.com',
+                        'X-RapidAPI-Key': '8e7518c4b3msh920becf2162dd63p177ee2jsn01cc05eb9533'
+                    }
+                };
+
+                await fetch('https://wordle-creator-tools.p.rapidapi.com/new-word?wordlength=5', options)
+                    .then(response => response.json())
+                    .then(response => this.currentWord = response.word)
+                    .catch(err => console.error(err));
+            }
+
+            async isValidWord() 
+            {
+                const userInput = this.getUserWord();
+
+                const options = {
+                    method: 'GET',
+                    headers: {
+                        'X-RapidAPI-Host': 'wordle-creator-tools.p.rapidapi.com',
+                        'X-RapidAPI-Key': '8e7518c4b3msh920becf2162dd63p177ee2jsn01cc05eb9533'
+                    }
+                };
+
+                return await fetch('https://wordle-creator-tools.p.rapidapi.com/check-word?word=' + userInput, options)
+                    .then(response => response.json())
+                    .then(response => { return response.result; })
+                    .catch(err => console.error(err));
+            }
+
+            getUserWord() 
+            {
+                let returnWord='';
+                this.userWord.wordAlphabets.map((item)=>{
+                    returnWord=returnWord+item.letter;
+                });
+                return returnWord;
+            }
+
+            async checkWord() 
+            {
+                this.userWord.wordContainer.querySelectorAll("input[type='text']").forEach((item, idx) => {
+                    const _alphabet = this.userWord.wordAlphabets[item.id];
+
+                    if (this.currentWord[idx] === item.value) {
+                        _alphabet.letter = item.value.toLowerCase();
+
+                    } else {
+                        if (this.currentWord.indexOf(item.value) !== -1) {
+                            _alphabet.isInRightPlace = false;
+                            _alphabet.letter = item.value.toLowerCase();
+                        } else {
+                            _alphabet.isIncluded = false;
+                            _alphabet.letter = item.value.toLowerCase();
+                        }
+
+                        this.userWord.isCorrectWord = false;
+
+                    }
+                });                
+                const isValidWord = await this.isValidWord();
+                if (!isValidWord || this.getUserWord().length < 5) {
+                    document.getElementById("message").innerText = 'Not a valid word!';
+                } else {
+                    if (this.numberOfTries < 5) {
+                        if (this.userWord.isCorrectWord) {
+                            this.renderWinner();
+                        } else {
+                            this.guessedWords.push(JSON.stringify(this.userWord.wordAlphabets));
+                            this.resetGame();
+                            this.renderGuessedWords();
+                        }
+
+                    } 
+                    else 
+                    {
+                        this.renderWinner();
+                    }
+                    this.numberOfTries++;
+                    this.renderNumberOfTries();
+                }
+            }
+
+            removeChildren(parentEle) 
+            {
+                const ele = document.getElementById(parentEle);
+                while (ele.firstChild) {
+                    ele.removeChild(ele.firstChild);
+                }
+            }
+
+            renderWinner() 
+            {
+                const isCorrectWord = this.userWord.isCorrectWord;
+                if (isCorrectWord && this.numberOfTries < 5) {
+                    document.getElementById("message").innerText = 'You win!!';
+                } else {
+                    document.getElementById("message").innerText = 'You lose. Play again';
+                }
+                this.renderPlayAgain();
+            }
+
+            renderPlayAgain() 
+            {
+                document.getElementById("checkwordle").classList.add("hide");
+                document.getElementById("playagain").classList.remove("hide");
+            }
+
+            renderCheckWord() 
+            {
+                document.getElementById("checkwordle").classList.remove("hide");
+                document.getElementById("playagain").classList.add("hide");
+            }
+
+            renderNumberOfTries() 
+            {
+                document.getElementById("numberoftries").innerText = this.numberOfTries;
+            }
+
+            renderGuessedWords() 
+            {
+                this.removeChildren("usedwords");
+                let guessedWordsContainer = document.getElementById("usedwords");
+                this.guessedWords.map((val) => {
+                    const arr = JSON.parse(val);
+                    let word = '';
+                    const letterDiv = document.createElement("div");
+                    letterDiv.classList.add("flex-display");
+                    arr.forEach((item, idx) => {
+                        const letterSpan = document.createElement("span");
+                        letterSpan.classList.add("letter");
+                        if (item.isInRightPlace) {
+                            letterSpan.classList.add("green");
+                        } else {
+                            letterSpan.classList.add("yellow");
+                        }
+                        if (!item.isIncluded) {
+                            letterSpan.classList.add("black");
+                        }
+                        letterSpan.innerText = item.letter;
+                        letterDiv.append(letterSpan);
+
+                    });
+                    guessedWordsContainer.append(letterDiv);
+                });
+            }
+
+            resetGame() 
+            {
+                this.initUserWord();
+                document.getElementById("message").innerText = '';
+                this.userWord.wordContainer.querySelectorAll("input[type='text']").forEach((item) => {
+                    item.value = '';
+                });
+            }
+
+            isDebugMode()
+            {
+                return window.location.search.indexOf("debug") !==-1;
+            }
+
+            renderDebugMode()
+            {
+                const debugcontainer=document.getElementById("currentword");
+                if(this.isDebugMode()){
+                    debugcontainer.innerText='Current word: '+ this.currentWord;
+                }
+            }
+
+        }
+
+        class initGame 
+        {
+            constructor() 
+            {
+                this.wordle = '';
+            }
+            async init() 
+            {
+                this.wordle = new wordle();
+                await this.wordle.getCurrentWord();
+                this.wordle.userWord.render();
+                this.wordle.renderNumberOfTries();
+                this.wordle.renderCheckWord();
+                this.wordle.renderDebugMode();
+            }
+
+            checkwordle() 
+            {
+                document.getElementById("checkwordle").addEventListener("click", () => {
+                    this.wordle.checkWord();
+                });
+            }
+
+            playAgain() 
+            {
+                document.getElementById("playagain").addEventListener("click", async () => {
+                    this.wordle.init();
+                    await this.wordle.getCurrentWord();
+                    this.wordle.resetGame();
+                    this.wordle.removeChildren("usedwords");
+                    this.wordle.renderNumberOfTries();
+                    this.wordle.renderCheckWord();
+                    this.wordle.renderDebugMode();
+                    //this.checkwordle();
+                });
+            }
+        }
+
+        window.onload = async () => {
+            const game = new initGame();
+            await game.init();
+            game.checkwordle();
+            game.playAgain();
+        }
+    </script>
+</body>
+</html>
