@@ -281,6 +281,8 @@
                     document.getElementById("message").innerText = 'You win!!';
                 } else {
                     document.getElementById("message").innerText = 'You lose. Play again';
+                    const currentWordContainer=document.getElementById("currentword");
+                    currentWordContainer.innerText='Wordle word: '+ this.currentWord;
                 }
                 this.renderPlayAgain();
             }
@@ -337,6 +339,8 @@
                 this.userWord.wordContainer.querySelectorAll("input[type='text']").forEach((item) => {
                     item.value = '';
                 });
+                const currentWordContainer=document.getElementById("currentword");
+                currentWordContainer.innerText='';
             }
 
             isDebugMode()
@@ -348,7 +352,7 @@
             {
                 const debugcontainer=document.getElementById("currentword");
                 if(this.isDebugMode()){
-                    debugcontainer.innerText='Current word: '+ this.currentWord;
+                    debugcontainer.innerText='Wordle word: '+ this.currentWord;
                 }
             }
 
