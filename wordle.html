@@ -2,6 +2,9 @@
 <html lang="en">
 
 <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wordle</title>
     <style>
         .container 
@@ -97,7 +100,8 @@
             line-height: 15px;
             height: 20px;
         }
-        .maincontainer{
+        .maincontainer
+        {
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -215,52 +219,64 @@
 
             getUserWord() 
             {
-                let returnWord='';
-                this.userWord.wordAlphabets.map((item)=>{
-                    returnWord=returnWord+item.letter;
+                let returnWord = '';
+                this.userWord.wordAlphabets.map((item) => {
+                    returnWord += item.letter;
                 });
+                console.log(returnWord);
                 return returnWord;
             }
 
             async checkWord() 
             {
                 this.userWord.wordContainer.querySelectorAll("input[type='text']").forEach((item, idx) => {
-                    const _alphabet = this.userWord.wordAlphabets[item.id];
+                    const alpha = this.userWord.wordAlphabets[item.id];
 
-                    if (this.currentWord[idx] === item.value) {
-                        _alphabet.letter = item.value.toLowerCase();
-
-                    } else {
-                        if (this.currentWord.indexOf(item.value) !== -1) {
-                            _alphabet.isInRightPlace = false;
-                            _alphabet.letter = item.value.toLowerCase();
-                        } else {
-                            _alphabet.isIncluded = false;
-                            _alphabet.letter = item.value.toLowerCase();
+                    if (this.currentWord[idx] === item.value) 
+                    {
+                        alpha.letter = item.value.toLowerCase();
+                    } 
+                    else 
+                    {
+                        if (this.currentWord.indexOf(item.value) !== -1) 
+                        {
+                            alpha.isInRightPlace = false;
+                            alpha.letter = item.value.toLowerCase();
+                        } 
+                        else 
+                        {
+                            alpha.isIncluded = false;
+                            alpha.letter = item.value.toLowerCase();
                         }
 
                         this.userWord.isCorrectWord = false;
-
                     }
                 });                
                 const isValidWord = await this.isValidWord();
-                if (!isValidWord || this.getUserWord().length < 5) {
+                if (!isValidWord || this.getUserWord().length < 5) 
+                {
                     document.getElementById("message").innerText = 'Not a valid word!';
-                } else {
-                    if (this.numberOfTries < 5) {
-                        if (this.userWord.isCorrectWord) {
+                } 
+                else 
+                {
+                    if (this.numberOfTries < 5) 
+                    {
+                        if (this.userWord.isCorrectWord) 
+                        {
                             this.renderWinner();
-                        } else {
+                        } 
+                        else 
+                        {
                             this.guessedWords.push(JSON.stringify(this.userWord.wordAlphabets));
                             this.resetGame();
                             this.renderGuessedWords();
                         }
-
                     } 
                     else 
                     {
                         this.renderWinner();
                     }
+                    console.log(this.numberOfTries);
                     this.numberOfTries++;
                     this.renderNumberOfTries();
                 }
@@ -276,10 +292,14 @@
 
             renderWinner() 
             {
+                console.log(this.userWord.isCorrectWord);
                 const isCorrectWord = this.userWord.isCorrectWord;
-                if (isCorrectWord && this.numberOfTries < 5) {
+                if (isCorrectWord && this.numberOfTries < 5) 
+                {
                     document.getElementById("message").innerText = 'You win!!';
-                } else {
+                } 
+                else 
+                {
                     document.getElementById("message").innerText = 'You lose. Play again';
                     const currentWordContainer=document.getElementById("currentword");
                     currentWordContainer.innerText='Wordle word: '+ this.currentWord;
@@ -291,6 +311,7 @@
             {
                 document.getElementById("checkwordle").classList.add("hide");
                 document.getElementById("playagain").classList.remove("hide");
+                
             }
 
             renderCheckWord() 
@@ -309,6 +330,7 @@
                 this.removeChildren("usedwords");
                 let guessedWordsContainer = document.getElementById("usedwords");
                 this.guessedWords.map((val) => {
+                    console.log(val);
                     const arr = JSON.parse(val);
                     let word = '';
                     const letterDiv = document.createElement("div");
@@ -316,17 +338,19 @@
                     arr.forEach((item, idx) => {
                         const letterSpan = document.createElement("span");
                         letterSpan.classList.add("letter");
-                        if (item.isInRightPlace) {
+                        if (item.isInRightPlace) 
+                        {
                             letterSpan.classList.add("green");
-                        } else {
+                        } else 
+                        {
                             letterSpan.classList.add("yellow");
                         }
-                        if (!item.isIncluded) {
+                        if (!item.isIncluded) 
+                        {
                             letterSpan.classList.add("black");
                         }
                         letterSpan.innerText = item.letter;
                         letterDiv.append(letterSpan);
-
                     });
                     guessedWordsContainer.append(letterDiv);
                 });
@@ -351,7 +375,8 @@
             renderDebugMode()
             {
                 const debugcontainer=document.getElementById("currentword");
-                if(this.isDebugMode()){
+                if(this.isDebugMode())
+                {
                     debugcontainer.innerText='Wordle word: '+ this.currentWord;
                 }
             }
@@ -390,7 +415,7 @@
                     this.wordle.removeChildren("usedwords");
                     this.wordle.renderNumberOfTries();
                     this.wordle.renderCheckWord();
-                    this.wordle.renderDebugMode();
+                    this.wordle.renderDebugMode();                    
                     //this.checkwordle();
                 });
             }
